@@ -120,9 +120,9 @@ is.de_sig <-
   decideTests(lrt, adjust.method = "fdr", p.value = 0.05)
 summary(is.de_sig)
 hist(meta_distal$LogDUroA)
-       
-       
-       
+
+
+
 plotBCV(y) 
 
 
@@ -151,34 +151,39 @@ sampleTable <- data.frame(
   fileName = sampleFiles,
   uroB = meta$DuroB,
   uroBcategory = meta$UroBCategory,
+  uroAcategory = meta$UroA_Class,
+  uroA = meta$LogDUroA,
   sex = meta$Sex,
   colon = meta$Location,
   obesity = meta$Obesity,
   risk = meta$PolypRiskScore
 )
 
+sampleTable$risk <- factor(sampleTable$risk)
+
 distalTable <- sampleTable[sampleTable$colon=='Distal',]
 
 proximalTable <- sampleTable[sampleTable$colon=='Proximal',]
 
 ddsHTSeq <- DESeqDataSetFromHTSeqCount(
-  sampleTable = distalTable, 
+  sampleTable = proximalTable, 
   directory = directory, 
-  design = ~ uroBcategory
+  design = ~ uroAcategory*obesity
 )
 
 
 
-ddsHTSeq$uroBcategory
+ddsHTSeq$obesity
 
 # To replace the order with one of your choosing, create a vector with the order you want:
 category <- c("Zero","Decrease","Increase")
-
+Acategory <- c("Low","Med","High")
 # Then reset the factor levels:
 ddsHTSeq$uroBcategory <- factor(ddsHTSeq$uroBcategory, levels = category)
+ddsHTSeq$uroAcategory <- factor(ddsHTSeq$uroAcategory, levels = Acategory)
 
 # verify the order
-ddsHTSeq$uroBcategory
+ddsHTSeq$uroAcategory
 
 ######################################################
 # Filter out genes with very low expression
@@ -202,9 +207,12 @@ ddsHTSeq <- ddsHTSeq[keep,]
 dds <- DESeq(ddsHTSeq)
 resultsNames(dds)
 
-
-res <- results(dds, contrast=list(c("uroBcategory_Decrease_vs_Zero","uroBcategory_Increase_vs_Zero")))
-summary(res)
+res1a<- results(dds, contrast=list(c("uroAcategory_Med_vs_Low"),c("uroAcategory_High_vs_Low")))
+res2a <- results(dds, name="uroAcategoryHigh.obesityObese")
+res3a <-results(dds,name="obesity_Obese_vs_NonObese")
+res1 <- results(dds, contrast=list(c("uroBcategory_Decrease_vs_Zero","uroBcategory_Increase_vs_Zero")))
+res2 <- results(dds, name="uroBcategoryDecrease.obesityObese")
+summary(res3a)
 View(as.data.frame(res))
 
 
@@ -245,4 +253,5 @@ plotCounts(dds,gene = 'ENSG00000231500',intgroup = 'urolithin',returnData=TRUE)
 
 
 
-
+###Next steps:
+#use just urolithinA and urolithin end values
