@@ -1,1 +1,1 @@
-Gene expression study for Martinez Lab
+Gene expression study for Rosenberg Lab
