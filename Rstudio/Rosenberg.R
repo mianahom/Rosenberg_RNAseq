@@ -147,12 +147,16 @@ ggplot(pca_data, aes(x = PC1, y = PC2, color = Group)) +
 #dataframe
 
 sampleTable <- data.frame(
-  sampleName = meta$fileName,
+  sampleName = meta$sample_id,
   fileName = sampleFiles,
-  uroB = meta$DuroB,
-  uroBcategory = meta$UroBCategory,
-  uroAcategory = meta$UroA_Class,
-  uroA = meta$LogDUroA,
+  uroA = meta$UrolithinA,
+  uroB = meta$UrolithinB,
+  uroC= meta$UrolithinC,
+  uroD = meta$UrolithinD,
+  uroE = meta$UrolithinE,
+  uroM5 = meta$UrolithinM5,
+  uroM6 = meta$UrolithinM6,
+  uroM7 = meta$UrolithinM7,
   sex = meta$Sex,
   colon = meta$Location,
   obesity = meta$Obesity,

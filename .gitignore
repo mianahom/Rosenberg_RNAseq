@@ -3,7 +3,10 @@
 **/results
 **/raw_multiqc
 **/trimmed_multiqc
+*.csv
+*.xlsx
 *.Rproj
+*.rds
 *.out
 *.fa
 *.fai
