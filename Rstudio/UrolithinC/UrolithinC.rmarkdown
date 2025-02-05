@@ -8,7 +8,11 @@ format:
      embed-resources: true
 ---
 
+
+
 ## Load libraries
+
+
 ```{r}
 #| output: false
 library("DESeq2")
@@ -26,7 +30,11 @@ library("ggupset")
 library("data.table")
 ```
 
+
+
 ## Read in distal and proximal objects and set working directory
+
+
 
 ```{r}
 #setwd(dir="../UrolithinC/")
@@ -39,7 +47,11 @@ DistalTable
 ProximalTable <- readRDS("../QC_meta/ProximalTable.rds")
 ProximalTable
 ```
+
+
 ## Create DESeq2 Object
+
+
 ```{r}
 distal_ddsHTSeq <- DESeqDataSetFromHTSeqCount(
   sampleTable = DistalTable, 
@@ -52,8 +64,12 @@ proximal_ddsHTSeq <- DESeqDataSetFromHTSeqCount(
   design = ~ uroC_bin
 )
 ```
+
+
 ## Distal Analysis
 ### Filter out low expression genes
+
+
 ```{r}
 # sum counts for each gene across samples
 sumcounts <- rowSums(counts(distal_ddsHTSeq))
@@ -66,17 +82,27 @@ keep <- sumcounts > 50
 distal_ddsHTSeq <- distal_ddsHTSeq[keep,]
 ```
 
+
+
 ### Set factors
+
+
 ```{r}
 levels <- c("zero","low","med","high")
 distal_ddsHTSeq$uroC_bin <- factor(distal_ddsHTSeq$uroC_bin, levels = levels)
 distal_ddsHTSeq$uroC_bin
 ```
+
+
 ### Get results
+
+
 ```{r}
 distal_dds <- DESeq(distal_ddsHTSeq)
 resultsNames(distal_dds)
 ```
+
+
 
 ### Extract Results
 #### res1: high vs zero
@@ -85,6 +111,8 @@ resultsNames(distal_dds)
 #### res4: high vs low
 #### res5: med vs low
 #### res6: high vs med
+
+
 
 ```{r}
 res1_dist <-results(distal_dds, name="uroC_bin_high_vs_zero")
@@ -95,7 +123,11 @@ res5_dist <-results(distal_dds, contrast=list(c("uroC_bin_med_vs_zero"),c("uroC_
 res6_dist <-results(distal_dds, contrast=list(c("uroC_bin_high_vs_zero"),c("uroC_bin_med_vs_zero")))
 
 ```
+
+
 ### Summary of results
+
+
 ```{r}
 summary(res1_dist)
 summary(res2_dist)
@@ -105,8 +137,12 @@ summary(res5_dist)
 summary(res6_dist)
 ```
 
+
+
 ## Proximal Analysis
 ### Filter out low expression genes
+
+
 ```{r}
 # sum counts for each gene across samples
 sumcounts <- rowSums(counts(proximal_ddsHTSeq))
@@ -118,17 +154,27 @@ hist(logsumcounts,breaks=100)
 keep <- sumcounts > 50
 proximal_ddsHTSeq <- proximal_ddsHTSeq[keep,]
 ```
+
+
 ### Set factors
+
+
 ```{r}
 levels <- c("zero","low","med","high")
 proximal_ddsHTSeq$uroC_bin <- factor(proximal_ddsHTSeq$uroC_bin, levels = levels)
 proximal_ddsHTSeq$uroC_bin
 ```
+
+
 ### Get results
+
+
 ```{r}
 proximal_dds <- DESeq(proximal_ddsHTSeq)
 resultsNames(proximal_dds)
 ```
+
+
 
 ### Extract Results
 #### res1: high vs zero
@@ -137,6 +183,8 @@ resultsNames(proximal_dds)
 #### res4: high vs low
 #### res5: med vs low
 #### res6: high vs med
+
+
 
 ```{r}
 res1_prox <-results(proximal_dds, name="uroC_bin_high_vs_zero")
@@ -147,7 +195,11 @@ res5_prox <-results(proximal_dds, contrast=list(c("uroC_bin_med_vs_zero"),c("uro
 res6_prox <-results(proximal_dds, contrast=list(c("uroC_bin_high_vs_zero"),c("uroC_bin_med_vs_zero")))
 
 ```
+
+
 ### Summary of results
+
+
 ```{r}
 summary(res1_prox)
 summary(res2_prox)
@@ -156,11 +208,19 @@ summary(res4_prox)
 summary(res5_prox)
 summary(res6_prox)
 ```
+
+
 ### Look at some counts
+
+
 ```{r}
 res3_prox %>% as.data.frame() %>% arrange(padj) %>% head()
 ```
+
+
 #### Plot Counts
+
+
 
 ```{r}
 plotCounts(proximal_dds,gene="ENSG00000198712", intgroup = "uroC_bin")

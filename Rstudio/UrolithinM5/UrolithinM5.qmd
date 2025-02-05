@@ -1,5 +1,5 @@
 ---
-title: "Urolithin C results"
+title: "Urolithin M5 results"
 author: Mia Nahom
 date: 2025-2-4
 format: 
@@ -29,7 +29,7 @@ library("data.table")
 ## Read in distal and proximal objects and set working directory
 
 ```{r}
-#setwd(dir="../UrolithinC/")
+#setwd(dir="../UrolithinM5/")
 directory <- "../counts/"
 list.files(directory)
 
@@ -44,12 +44,12 @@ ProximalTable
 distal_ddsHTSeq <- DESeqDataSetFromHTSeqCount(
   sampleTable = DistalTable, 
   directory = directory, 
-  design = ~ uroC_bin
+  design = ~ uroM5_bin
 )
 proximal_ddsHTSeq <- DESeqDataSetFromHTSeqCount(
   sampleTable = ProximalTable, 
   directory = directory, 
-  design = ~ uroC_bin
+  design = ~ uroM5_bin
 )
 ```
 ## Distal Analysis
@@ -69,8 +69,8 @@ distal_ddsHTSeq <- distal_ddsHTSeq[keep,]
 ### Set factors
 ```{r}
 levels <- c("zero","low","med","high")
-distal_ddsHTSeq$uroC_bin <- factor(distal_ddsHTSeq$uroC_bin, levels = levels)
-distal_ddsHTSeq$uroC_bin
+distal_ddsHTSeq$uroM5_bin <- factor(distal_ddsHTSeq$uroM5_bin, levels = levels)
+distal_ddsHTSeq$uroM5_bin
 ```
 ### Get results
 ```{r}
@@ -87,12 +87,12 @@ resultsNames(distal_dds)
 #### res6: high vs med
 
 ```{r}
-res1_dist <-results(distal_dds, name="uroC_bin_high_vs_zero")
-res2_dist <-results(distal_dds, name="uroC_bin_high_vs_zero")
-res3_dist <-results(distal_dds, name="uroC_bin_low_vs_zero")
-res4_dist <-results(distal_dds, contrast=list(c("uroC_bin_high_vs_zero"),c("uroC_bin_low_vs_zero")))
-res5_dist <-results(distal_dds, contrast=list(c("uroC_bin_med_vs_zero"),c("uroC_bin_low_vs_zero")))
-res6_dist <-results(distal_dds, contrast=list(c("uroC_bin_high_vs_zero"),c("uroC_bin_med_vs_zero")))
+res1_dist <-results(distal_dds, name="uroM5_bin_high_vs_zero")
+res2_dist <-results(distal_dds, name="uroM5_bin_med_vs_zero")
+res3_dist <-results(distal_dds, name="uroM5_bin_low_vs_zero")
+res4_dist <-results(distal_dds, contrast=list(c("uroM5_bin_high_vs_zero"),c("uroM5_bin_low_vs_zero")))
+res5_dist <-results(distal_dds, contrast=list(c("uroM5_bin_med_vs_zero"),c("uroM5_bin_low_vs_zero")))
+res6_dist <-results(distal_dds, contrast=list(c("uroM5_bin_high_vs_zero"),c("uroM5_bin_med_vs_zero")))
 
 ```
 ### Summary of results
@@ -103,6 +103,18 @@ summary(res3_dist)
 summary(res4_dist)
 summary(res5_dist)
 summary(res6_dist)
+```
+### Look at some counts
+```{r}
+res1_dist %>% as.data.frame() %>% arrange(padj) %>% head()
+```
+#### Plot Counts
+
+```{r}
+plotCounts(distal_dds,gene="ENSG00000129824", intgroup = "uroM5_bin")
+plotCounts(distal_dds,gene="ENSG00000084070", intgroup = "uroM5_bin")
+plotCounts(distal_dds,gene="ENSG00000234741", intgroup = "uroM5_bin")
+plotCounts(distal_dds,gene="ENSG00000174718", intgroup = "uroM5_bin")
 ```
 
 ## Proximal Analysis
@@ -121,8 +133,8 @@ proximal_ddsHTSeq <- proximal_ddsHTSeq[keep,]
 ### Set factors
 ```{r}
 levels <- c("zero","low","med","high")
-proximal_ddsHTSeq$uroC_bin <- factor(proximal_ddsHTSeq$uroC_bin, levels = levels)
-proximal_ddsHTSeq$uroC_bin
+proximal_ddsHTSeq$uroM5_bin <- factor(proximal_ddsHTSeq$uroM5_bin, levels = levels)
+proximal_ddsHTSeq$uroM5_bin
 ```
 ### Get results
 ```{r}
@@ -139,12 +151,12 @@ resultsNames(proximal_dds)
 #### res6: high vs med
 
 ```{r}
-res1_prox <-results(proximal_dds, name="uroC_bin_high_vs_zero")
-res2_prox <-results(proximal_dds, name="uroC_bin_med_vs_zero")
-res3_prox <-results(proximal_dds, name="uroC_bin_low_vs_zero")
-res4_prox <-results(proximal_dds, contrast=list(c("uroC_bin_high_vs_zero"),c("uroC_bin_low_vs_zero")))
-res5_prox <-results(proximal_dds, contrast=list(c("uroC_bin_med_vs_zero"),c("uroC_bin_low_vs_zero")))
-res6_prox <-results(proximal_dds, contrast=list(c("uroC_bin_high_vs_zero"),c("uroC_bin_med_vs_zero")))
+res1_prox <-results(proximal_dds, name="uroM5_bin_high_vs_zero")
+res2_prox <-results(proximal_dds, name="uroM5_bin_med_vs_zero")
+res3_prox <-results(proximal_dds, name="uroM5_bin_low_vs_zero")
+res4_prox <-results(proximal_dds, contrast=list(c("uroM5_bin_high_vs_zero"),c("uroM5_bin_low_vs_zero")))
+res5_prox <-results(proximal_dds, contrast=list(c("uroM5_bin_med_vs_zero"),c("uroM5_bin_low_vs_zero")))
+res6_prox <-results(proximal_dds, contrast=list(c("uroM5_bin_high_vs_zero"),c("uroM5_bin_med_vs_zero")))
 
 ```
 ### Summary of results
@@ -155,17 +167,4 @@ summary(res3_prox)
 summary(res4_prox)
 summary(res5_prox)
 summary(res6_prox)
-```
-### Look at some counts
-```{r}
-res3_prox %>% as.data.frame() %>% arrange(padj) %>% head()
-```
-#### Plot Counts
-
-```{r}
-plotCounts(proximal_dds,gene="ENSG00000198712", intgroup = "uroC_bin")
-plotCounts(proximal_dds,gene="ENSG00000198763", intgroup = "uroC_bin")
-plotCounts(proximal_dds,gene="ENSG00000198888", intgroup = "uroC_bin")
-plotCounts(proximal_dds,gene="ENSG00000198938", intgroup = "uroC_bin")
-plotCounts(proximal_dds,gene="ENSG00000212907", intgroup = "uroC_bin")
 ```
