@@ -1,0 +1,155 @@
+---
+title: "Urolithin B results"
+author: Mia Nahom
+date: 2025-2-4
+format: 
+  html:
+     df-print: paged
+     embed-resources: true
+---
+
+## Load libraries
+```{r}
+#| output: false
+library("DESeq2")
+library("apeglm")
+library("pheatmap")
+library("tidyverse")
+library("ggrepel")
+library("ashr")
+library("goseq")
+library("biomaRt")
+library("ggplot2")
+library("clusterProfiler")
+library("enrichplot")
+library("ggupset")
+library("data.table")
+```
+
+## Read in distal and proximal objects and set working directory
+
+```{r}
+#setwd(dir="../UrolithinB/")
+directory <- "../counts/"
+list.files(directory)
+
+#Load Distal Table
+DistalTable <- readRDS("../QC_meta/DistalTable.rds")
+DistalTable
+ProximalTable <- readRDS("../QC_meta/ProximalTable.rds")
+ProximalTable
+```
+## Create DESeq2 Object
+```{r}
+distal_ddsHTSeq <- DESeqDataSetFromHTSeqCount(
+  sampleTable = DistalTable, 
+  directory = directory, 
+  design = ~ uroB_bin
+)
+proximal_ddsHTSeq <- DESeqDataSetFromHTSeqCount(
+  sampleTable = ProximalTable, 
+  directory = directory, 
+  design = ~ uroB_bin
+)
+```
+## Distal Analysis
+### Filter out low expression genes
+```{r}
+# sum counts for each gene across samples
+sumcounts <- rowSums(counts(distal_ddsHTSeq))
+# take the log
+logsumcounts <- log(sumcounts,base=10)
+# plot a histogram of the log scaled counts
+hist(logsumcounts,breaks=100)
+# get genes with summed counts greater than 50
+keep <- sumcounts > 50
+distal_ddsHTSeq <- distal_ddsHTSeq[keep,]
+```
+
+### Set factors
+```{r}
+levels <- c("zero","low","high")
+distal_ddsHTSeq$uroB_bin <- factor(distal_ddsHTSeq$uroB_bin, levels = levels)
+distal_ddsHTSeq$uroB_bin
+```
+### Get results
+```{r}
+distal_dds <- DESeq(distal_ddsHTSeq)
+resultsNames(distal_dds)
+```
+
+### Extract Results
+#### res1: high vs zero
+#### res2: low vs zero
+#### res3: high vs low
+
+```{r}
+res1_dist <-results(distal_dds, name="uroB_bin_high_vs_zero")
+res2_dist <-results(distal_dds, name="uroB_bin_low_vs_zero")
+res3_dist <-results(distal_dds, contrast=list(c("uroB_bin_high_vs_zero"),c("uroB_bin_low_vs_zero")))
+
+```
+### Summary of results
+```{r}
+summary(res1_dist)
+summary(res2_dist)
+summary(res3_dist)
+```
+
+## Proximal Analysis
+### Filter out low expression genes
+```{r}
+# sum counts for each gene across samples
+sumcounts <- rowSums(counts(proximal_ddsHTSeq))
+# take the log
+logsumcounts <- log(sumcounts,base=10)
+# plot a histogram of the log scaled counts
+hist(logsumcounts,breaks=100)
+# get genes with summed counts greater than 50
+keep <- sumcounts > 50
+proximal_ddsHTSeq <- proximal_ddsHTSeq[keep,]
+```
+### Set factors
+```{r}
+levels <- c("zero","low","high")
+proximal_ddsHTSeq$uroB_bin <- factor(proximal_ddsHTSeq$uroB_bin, levels = levels)
+proximal_ddsHTSeq$uroB_bin
+```
+### Get results
+```{r}
+proximal_dds <- DESeq(proximal_ddsHTSeq)
+resultsNames(proximal_dds)
+```
+
+### Extract Results
+#### res1: high vs zero
+#### res2: low vs zero
+#### res3: high vs low
+
+
+```{r}
+res1_prox <-results(proximal_dds, name="uroB_bin_high_vs_zero")
+res2_prox <-results(proximal_dds, name="uroB_bin_low_vs_zero")
+res3_prox <-results(proximal_dds, contrast=list(c("uroB_bin_high_vs_zero"),c("uroB_bin_low_vs_zero")))
+```
+### Summary of results
+```{r}
+summary(res1_prox)
+summary(res2_prox)
+summary(res3_prox)
+
+```
+### Look at some counts
+```{r}
+res2_prox %>% as.data.frame() %>% arrange(padj) %>% head()
+```
+#### Plot Counts
+
+```{r}
+plotCounts(proximal_dds,gene="ENSG00000137078", intgroup = "uroB_bin")
+plotCounts(proximal_dds,gene="ENSG00000121210", intgroup = "uroB_bin")
+plotCounts(proximal_dds,gene="ENSG00000277734", intgroup = "uroB_bin")
+plotCounts(proximal_dds,gene="ENSG00000081059", intgroup = "uroB_bin")
+plotCounts(proximal_dds,gene="ENSG00000105655", intgroup = "uroB_bin")
+```
+

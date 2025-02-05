@@ -4,7 +4,7 @@
 **/raw_multiqc
 **/trimmed_multiqc
 *.csv
-*.xlsx
+*xlsx
 *.Rproj
 *.rds
 *.out

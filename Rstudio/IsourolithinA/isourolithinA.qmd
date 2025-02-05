@@ -1,0 +1,179 @@
+---
+title: "Isorolithin A results"
+author: Mia Nahom
+date: 2025-2-4
+format: 
+  html:
+     df-print: paged
+     embed-resources: true
+---
+
+## Load libraries
+```{r}
+#| output: false
+library("DESeq2")
+library("apeglm")
+library("pheatmap")
+library("tidyverse")
+library("ggrepel")
+library("ashr")
+library("goseq")
+library("biomaRt")
+library("ggplot2")
+library("clusterProfiler")
+library("enrichplot")
+library("ggupset")
+library("data.table")
+```
+
+## Read in distal and proximal objects and set working directory
+
+```{r}
+#setwd(dir="../IsourolithinA/")
+directory <- "../counts/"
+list.files(directory)
+
+#Load Distal Table
+DistalTable <- readRDS("../QC_meta/DistalTable.rds")
+DistalTable
+ProximalTable <- readRDS("../QC_meta/ProximalTable.rds")
+ProximalTable
+```
+## Create DESeq2 Object
+```{r}
+distal_ddsHTSeq <- DESeqDataSetFromHTSeqCount(
+  sampleTable = DistalTable, 
+  directory = directory, 
+  design = ~ isouroA_bin
+)
+proximal_ddsHTSeq <- DESeqDataSetFromHTSeqCount(
+  sampleTable = ProximalTable, 
+  directory = directory, 
+  design = ~ isouroA_bin
+)
+```
+## Distal Analysis
+### Filter out low expression genes
+```{r}
+# sum counts for each gene across samples
+sumcounts <- rowSums(counts(distal_ddsHTSeq))
+# take the log
+logsumcounts <- log(sumcounts,base=10)
+# plot a histogram of the log scaled counts
+hist(logsumcounts,breaks=100)
+# get genes with summed counts greater than 50
+keep <- sumcounts > 50
+distal_ddsHTSeq <- distal_ddsHTSeq[keep,]
+```
+
+### Set factors
+```{r}
+levels <- c("zero","low","low.med","med.high","high")
+distal_ddsHTSeq$isouroA_bin <- factor(distal_ddsHTSeq$isouroA_bin, levels = levels)
+distal_ddsHTSeq$isouroA_bin
+```
+### Get results
+```{r}
+distal_dds <- DESeq(distal_ddsHTSeq)
+resultsNames(distal_dds)
+```
+
+### Extract Results
+#### res1: high vs zero
+#### res2: med.high vs zero
+#### res3: low.med vs zero
+#### res4: low vs zero
+#### res5: high vs low
+#### res6: med.high vs low
+#### res7: low.med vs low
+#### res8: high vs low.med
+#### res9: high.med vs low.med
+#### res10: high vs med.high
+
+```{r}
+res1 <-results(distal_dds, name="isouroA_bin_high_vs_zero")
+res2 <-results(distal_dds, name="isouroA_bin_med.high_vs_zero")
+res3 <-results(distal_dds, name="isouroA_bin_low.med_vs_zero")
+res4 <-results(distal_dds, name="isouroA_bin_low_vs_zero")
+res5 <-results(distal_dds, contrast=list(c("isouroA_bin_high_vs_zero"),c("isouroA_bin_low_vs_zero")))
+res6 <-results(distal_dds, contrast=list(c("isouroA_bin_med.high_vs_zero"),c("isouroA_bin_low_vs_zero")))
+res7 <-results(distal_dds, contrast=list(c("isouroA_bin_low.med_vs_zero"),c("isouroA_bin_low_vs_zero")))
+res8 <-results(distal_dds, contrast=list(c("isouroA_bin_high_vs_zero"),c("isouroA_bin_low.med_vs_zero")))
+res9 <-results(distal_dds, contrast=list(c("isouroA_bin_med.high_vs_zero"),c("isouroA_bin_low.med_vs_zero")))
+res10 <-results(distal_dds, contrast=list(c("isouroA_bin_high_vs_zero"),c("isouroA_bin_med.high_vs_zero")))
+```
+### Summary of results
+```{r}
+summary(res1)
+summary(res2)
+summary(res3)
+summary(res4)
+summary(res5)
+summary(res6)
+summary(res7)
+summary(res8)
+summary(res9)
+summary(res10)
+```
+
+## Proximal Analysis
+### Filter out low expression genes
+```{r}
+# sum counts for each gene across samples
+sumcounts <- rowSums(counts(proximal_ddsHTSeq))
+# take the log
+logsumcounts <- log(sumcounts,base=10)
+# plot a histogram of the log scaled counts
+hist(logsumcounts,breaks=100)
+# get genes with summed counts greater than 50
+keep <- sumcounts > 50
+proximal_ddsHTSeq <- proximal_ddsHTSeq[keep,]
+```
+### Set factors
+```{r}
+levels <- c("zero","low","low.med","med.high","high")
+proximal_ddsHTSeq$isouroA_bin <- factor(proximal_ddsHTSeq$isouroA_bin, levels = levels)
+proximal_ddsHTSeq$isouroA_bin
+```
+### Get results
+```{r}
+proximal_dds <- DESeq(proximal_ddsHTSeq)
+resultsNames(proximal_dds)
+```
+### Extract Results
+#### res1: high vs zero
+#### res2: med.high vs zero
+#### res3: low.med vs zero
+#### res4: low vs zero
+#### res5: high vs low
+#### res6: med.high vs low
+#### res7: low.med vs low
+#### res8: high vs low.med
+#### res9: high.med vs low.med
+#### res10: high vs med.high
+
+```{r}
+res1 <-results(proximal_dds, name="isouroA_bin_high_vs_zero")
+res2 <-results(proximal_dds, name="isouroA_bin_med.high_vs_zero")
+res3 <-results(proximal_dds, name="isouroA_bin_low.med_vs_zero")
+res4 <-results(proximal_dds, name="isouroA_bin_low_vs_zero")
+res5 <-results(proximal_dds, contrast=list(c("isouroA_bin_high_vs_zero"),c("isouroA_bin_low_vs_zero")))
+res6 <-results(proximal_dds, contrast=list(c("isouroA_bin_med.high_vs_zero"),c("isouroA_bin_low_vs_zero")))
+res7 <-results(proximal_dds, contrast=list(c("isouroA_bin_low.med_vs_zero"),c("isouroA_bin_low_vs_zero")))
+res8 <-results(proximal_dds, contrast=list(c("isouroA_bin_high_vs_zero"),c("isouroA_bin_low.med_vs_zero")))
+res9 <-results(proximal_dds, contrast=list(c("isouroA_bin_med.high_vs_zero"),c("isouroA_bin_low.med_vs_zero")))
+res10 <-results(proximal_dds, contrast=list(c("isouroA_bin_high_vs_zero"),c("isouroA_bin_med.high_vs_zero")))
+```
+### Summary of results
+```{r}
+summary(res1)
+summary(res2)
+summary(res3)
+summary(res4)
+summary(res5)
+summary(res6)
+summary(res7)
+summary(res8)
+summary(res9)
+summary(res10)
+```
