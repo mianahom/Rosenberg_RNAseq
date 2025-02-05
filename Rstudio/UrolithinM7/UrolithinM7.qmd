@@ -1,0 +1,171 @@
+---
+title: "Urolithin M7 results"
+author: Mia Nahom
+date: 2025-2-4
+format: 
+  html:
+     df-print: paged
+     embed-resources: true
+---
+
+## Load libraries
+```{r}
+#| output: false
+library("DESeq2")
+library("apeglm")
+library("pheatmap")
+library("tidyverse")
+library("ggrepel")
+library("ashr")
+library("goseq")
+library("biomaRt")
+library("ggplot2")
+library("clusterProfiler")
+library("enrichplot")
+library("ggupset")
+library("data.table")
+```
+
+## Read in distal and proximal objects and set working directory
+
+```{r}
+#setwd(dir="../UrolithinM7/")
+directory <- "../counts/"
+list.files(directory)
+
+#Load Distal Table
+DistalTable <- readRDS("../QC_meta/DistalTable.rds")
+DistalTable
+ProximalTable <- readRDS("../QC_meta/ProximalTable.rds")
+ProximalTable
+```
+## Create DESeq2 Object
+```{r}
+distal_ddsHTSeq <- DESeqDataSetFromHTSeqCount(
+  sampleTable = DistalTable, 
+  directory = directory, 
+  design = ~ uroM7_bin
+)
+proximal_ddsHTSeq <- DESeqDataSetFromHTSeqCount(
+  sampleTable = ProximalTable, 
+  directory = directory, 
+  design = ~ uroM7_bin
+)
+```
+## Distal Analysis
+### Filter out low expression genes
+```{r}
+# sum counts for each gene across samples
+sumcounts <- rowSums(counts(distal_ddsHTSeq))
+# take the log
+logsumcounts <- log(sumcounts,base=10)
+# plot a histogram of the log scaled counts
+hist(logsumcounts,breaks=100)
+# get genes with summed counts greater than 50
+keep <- sumcounts > 50
+distal_ddsHTSeq <- distal_ddsHTSeq[keep,]
+```
+
+### Set factors
+```{r}
+levels <- c("zero","low","med","high")
+distal_ddsHTSeq$uroM7_bin <- factor(distal_ddsHTSeq$uroM7_bin, levels = levels)
+distal_ddsHTSeq$uroM7_bin
+```
+### Get results
+```{r}
+distal_dds <- DESeq(distal_ddsHTSeq)
+resultsNames(distal_dds)
+```
+
+### Extract Results
+#### res1: high vs zero
+#### res2: med vs zero
+#### res3: low vs zero
+#### res4: high vs low
+#### res5: med vs low
+#### res6: high vs med
+
+```{r}
+res1_dist <-results(distal_dds, name="uroM7_bin_high_vs_zero")
+res2_dist <-results(distal_dds, name="uroM7_bin_med_vs_zero")
+res3_dist <-results(distal_dds, name="uroM7_bin_low_vs_zero")
+res4_dist <-results(distal_dds, contrast=list(c("uroM7_bin_high_vs_zero"),c("uroM7_bin_low_vs_zero")))
+res5_dist <-results(distal_dds, contrast=list(c("uroM7_bin_med_vs_zero"),c("uroM7_bin_low_vs_zero")))
+res6_dist <-results(distal_dds, contrast=list(c("uroM7_bin_high_vs_zero"),c("uroM7_bin_med_vs_zero")))
+
+```
+### Summary of results
+```{r}
+summary(res1_dist)
+summary(res2_dist)
+summary(res3_dist)
+summary(res4_dist)
+summary(res5_dist)
+summary(res6_dist)
+```
+
+## Proximal Analysis
+### Filter out low expression genes
+```{r}
+# sum counts for each gene across samples
+sumcounts <- rowSums(counts(proximal_ddsHTSeq))
+# take the log
+logsumcounts <- log(sumcounts,base=10)
+# plot a histogram of the log scaled counts
+hist(logsumcounts,breaks=100)
+# get genes with summed counts greater than 50
+keep <- sumcounts > 50
+proximal_ddsHTSeq <- proximal_ddsHTSeq[keep,]
+```
+### Set factors
+```{r}
+levels <- c("zero","low","med","high")
+proximal_ddsHTSeq$uroM7_bin <- factor(proximal_ddsHTSeq$uroM7_bin, levels = levels)
+proximal_ddsHTSeq$uroM7_bin
+```
+### Get results
+```{r}
+proximal_dds <- DESeq(proximal_ddsHTSeq)
+resultsNames(proximal_dds)
+```
+
+### Extract Results
+#### res1: high vs zero
+#### res2: med vs zero
+#### res3: low vs zero
+#### res4: high vs low
+#### res5: med vs low
+#### res6: high vs med
+
+```{r}
+res1_prox <-results(proximal_dds, name="uroM7_bin_high_vs_zero")
+res2_prox <-results(proximal_dds, name="uroM7_bin_med_vs_zero")
+res3_prox <-results(proximal_dds, name="uroM7_bin_low_vs_zero")
+res4_prox <-results(proximal_dds, contrast=list(c("uroM7_bin_high_vs_zero"),c("uroM7_bin_low_vs_zero")))
+res5_prox <-results(proximal_dds, contrast=list(c("uroM7_bin_med_vs_zero"),c("uroM7_bin_low_vs_zero")))
+res6_prox <-results(proximal_dds, contrast=list(c("uroM7_bin_high_vs_zero"),c("uroM7_bin_med_vs_zero")))
+
+```
+### Summary of results
+```{r}
+summary(res1_prox)
+summary(res2_prox)
+summary(res3_prox)
+summary(res4_prox)
+summary(res5_prox)
+summary(res6_prox)
+```
+### Look at some counts
+```{r}
+res5_prox %>% as.data.frame() %>% arrange(padj) %>% head()
+```
+#### Plot Counts
+
+```{r}
+plotCounts(proximal_dds,gene="ENSG00000187908", intgroup = "uroM7_bin")
+plotCounts(proximal_dds,gene="ENSG00000165238", intgroup = "uroM7_bin")
+plotCounts(proximal_dds,gene="ENSG00000178199", intgroup = "uroM7_bin")
+plotCounts(proximal_dds,gene="ENSG00000183665", intgroup = "uroM7_bin")
+plotCounts(proximal_dds,gene="ENSG00000162878", intgroup = "uroM7_bin")
+```

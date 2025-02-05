@@ -1,0 +1,141 @@
+---
+title: "Obesity results"
+author: Mia Nahom
+date: 2025-2-4
+format: 
+  html:
+     df-print: paged
+     embed-resources: true
+---
+
+## Load libraries
+```{r}
+#| output: false
+library("DESeq2")
+library("apeglm")
+library("pheatmap")
+library("tidyverse")
+library("ggrepel")
+library("ashr")
+library("goseq")
+library("biomaRt")
+library("ggplot2")
+library("clusterProfiler")
+library("enrichplot")
+library("ggupset")
+library("data.table")
+```
+
+## Read in distal and proximal objects and set working directory
+
+```{r}
+#setwd(dir="../Obesity")
+directory <- "../counts/"
+list.files(directory)
+
+#Load Distal Table
+DistalTable <- readRDS("../QC_meta/DistalTable.rds")
+DistalTable
+ProximalTable <- readRDS("../QC_meta/ProximalTable.rds")
+ProximalTable
+```
+## Create DESeq2 Object
+```{r}
+distal_ddsHTSeq <- DESeqDataSetFromHTSeqCount(
+  sampleTable = DistalTable, 
+  directory = directory, 
+  design = ~ obesity
+)
+proximal_ddsHTSeq <- DESeqDataSetFromHTSeqCount(
+  sampleTable = ProximalTable, 
+  directory = directory, 
+  design = ~ obesity
+)
+```
+## Distal Analysis
+### Filter out low expression genes
+```{r}
+# sum counts for each gene across samples
+sumcounts <- rowSums(counts(distal_ddsHTSeq))
+# take the log
+logsumcounts <- log(sumcounts,base=10)
+# plot a histogram of the log scaled counts
+hist(logsumcounts,breaks=100)
+# get genes with summed counts greater than 50
+keep <- sumcounts > 50
+distal_ddsHTSeq <- distal_ddsHTSeq[keep,]
+```
+
+### Set factors
+```{r}
+levels <- c("NonObese","Obese")
+distal_ddsHTSeq$obesity <- factor(distal_ddsHTSeq$obesity, levels = levels)
+distal_ddsHTSeq$obesity
+```
+### Get results
+```{r}
+distal_dds <- DESeq(distal_ddsHTSeq)
+resultsNames(distal_dds)
+```
+
+### Extract Results
+#### res1: Obese vs NonObese
+
+
+```{r}
+res1_dist <-results(distal_dds, name="obesity_Obese_vs_NonObese")
+```
+### Summary of results
+```{r}
+summary(res1_dist)
+
+```
+
+## Proximal Analysis
+### Filter out low expression genes
+```{r}
+# sum counts for each gene across samples
+sumcounts <- rowSums(counts(proximal_ddsHTSeq))
+# take the log
+logsumcounts <- log(sumcounts,base=10)
+# plot a histogram of the log scaled counts
+hist(logsumcounts,breaks=100)
+# get genes with summed counts greater than 50
+keep <- sumcounts > 50
+proximal_ddsHTSeq <- proximal_ddsHTSeq[keep,]
+```
+### Set factors
+```{r}
+levels <- c("NonObese","Obese")
+proximal_ddsHTSeq$obesity <- factor(proximal_ddsHTSeq$obesity, levels = levels)
+proximal_ddsHTSeq$obesity
+```
+### Get results
+```{r}
+proximal_dds <- DESeq(proximal_ddsHTSeq)
+resultsNames(proximal_dds)
+```
+
+### Extract Results
+#### res1: Obese vs NonObese
+
+```{r}
+res1_prox <-results(proximal_dds, name="obesity_Obese_vs_NonObese")
+```
+### Summary of results
+```{r}
+summary(res1_prox)
+```
+### Look at some counts
+```{r}
+res1_prox %>% as.data.frame() %>% arrange(padj) %>% head()
+```
+#### Plot Counts
+
+```{r}
+plotCounts(proximal_dds,gene="ENSG00000110080", intgroup = "obesity")
+plotCounts(proximal_dds,gene="ENSG00000214026", intgroup = "obesity")
+plotCounts(proximal_dds,gene="ENSG00000162078", intgroup = "obesity")
+plotCounts(proximal_dds,gene="ENSG00000142627", intgroup = "obesity")
+plotCounts(proximal_dds,gene="ENSG00000137331", intgroup = "obesity")
+```
