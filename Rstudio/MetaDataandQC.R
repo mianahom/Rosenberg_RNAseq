@@ -91,4 +91,3 @@ proximalTable <- sampleTable[sampleTable$colon=='Proximal',]
 saveRDS(distalTable, file = "DistalTable.rds")
 saveRDS(proximalTable, file = "ProximalTable.rds")
 head(res)
-directory<-"

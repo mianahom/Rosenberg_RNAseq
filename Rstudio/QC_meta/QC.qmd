@@ -1,0 +1,221 @@
+---
+title: "Quality Control"
+author: Mia Nahom
+date: 2025-2-4
+format: 
+  html:
+     df-print: paged
+     embed-resources: true
+---
+## Load libraries
+```{r}
+#| output: false
+library("DESeq2")
+library("tidyverse")
+library("dplyr")
+```
+## Read in meta data
+```{r}
+setwd(dir = "../QC_meta/")
+
+meta <- read.csv('../Colon_Biopsy_RNASeq_Metadata.csv') 
+meta
+```
+```{r}
+urolithins <- read.csv('../urolithins.csv')
+urolithins
+```
+```{r}
+colnames(urolithins) <- urolithins[1, ]
+urolithins <- urolithins[-1,]
+urolithins <- urolithins[, -c(11:15)]
+colnames(urolithins)[1] <- "Patient.ID"
+colnames(urolithins) <- gsub(" ", "", colnames(urolithins))
+uro_endvalues <- urolithins[grepl("B$", urolithins$Patient.ID),]
+uro_endvalues$Patient.ID <- gsub("B", "", uro_endvalues$Patient.ID)
+uro_endvalues[, 2:10] <- lapply(uro_endvalues[, 2:10], function(x) as.numeric(as.character(x)))
+uro_endvalues
+```
+## Organize Urolithin start and end values:
+```{r}
+A_rows <- urolithins[grep("A$", urolithins$Patient.ID), ]
+B_rows <- urolithins[grep("B$", urolithins$Patient.ID), ]
+A_rows$Patient.ID <- sub("A$", "", A_rows$Patient.ID)
+B_rows$Patient.ID <- sub("B$", "", B_rows$Patient.ID)
+merged_data <- merge(A_rows, B_rows, by = "Patient.ID", suffixes = c("_A", "_B"))
+write.csv(merged_data,file="UrolithinValues.csv")
+merged_data
+```
+
+## Create Bins for Urolithins
+### UrolithinA
+```{r}
+summary(uro_endvalues$UrolithinA)
+sort(uro_endvalues$UrolithinA)
+uro_endvalues <- uro_endvalues %>%
+  mutate(uroA_bin = case_when(
+    UrolithinA == 0.00 ~ "zero",
+    UrolithinA > 0.00 & UrolithinA < 200 ~ "low",
+    UrolithinA >= 200 & UrolithinA < 1000 ~ "low.med",
+    UrolithinA >= 1000 & UrolithinA < 10000 ~ "med.high",
+    UrolithinA >= 10000 ~ "high"
+  ))
+```
+### IsoUrolithinA
+```{r}
+summary(uro_endvalues$IsourolithinA)
+sort(uro_endvalues$IsourolithinA)
+uro_endvalues <- uro_endvalues %>%
+  mutate(isouroA_bin = case_when(
+    IsourolithinA == 0.00 ~ "zero",
+    IsourolithinA > 0.00 & IsourolithinA < 100 ~ "low",
+    IsourolithinA >= 100 & IsourolithinA < 1000 ~ "low.med",
+    IsourolithinA >= 1000 & IsourolithinA < 10000 ~ "med.high",
+    IsourolithinA >= 10000 ~ "high"
+  ))
+```
+### UrolithinB
+```{r}
+summary(uro_endvalues$UrolithinB)
+sort(uro_endvalues$UrolithinB)
+uro_endvalues <- uro_endvalues %>%
+  mutate(uroB_bin = case_when(
+    UrolithinB == 0.00 ~ "zero",
+    UrolithinB > 0.00 & UrolithinB < 1000 ~ "low",
+    UrolithinB >= 1000  ~ "high"
+  ))
+```
+
+### UrolithinC
+```{r}
+summary(uro_endvalues$UrolithinC)
+sort(uro_endvalues$UrolithinC)
+uro_endvalues <- uro_endvalues %>%
+  mutate(uroC_bin = case_when(
+    UrolithinC == 0.00 ~ "zero",
+    UrolithinC > 0.00 & UrolithinC < 200 ~ "low",
+    UrolithinC >= 100 & UrolithinC < 1000 ~ "med",
+    UrolithinC >= 1000 ~ "high"
+  ))
+```
+
+### UrolithinD
+```{r}
+summary(uro_endvalues$UrolithinD)
+sort(uro_endvalues$UrolithinD)
+uro_endvalues <- uro_endvalues %>%
+  mutate(uroD_bin = case_when(
+    UrolithinD == 0.00 ~ "zero",
+    UrolithinD > 0.00 & UrolithinD < 400 ~ "low",
+    UrolithinD >= 400 ~ "high"
+  ))
+```
+
+### UrolithinE
+```{r}
+summary(uro_endvalues$UrolithinE)
+sort(uro_endvalues$UrolithinE)
+uro_endvalues <- uro_endvalues %>%
+  mutate(uroE_bin = case_when(
+    UrolithinE == 0.00 ~ "zero",
+    UrolithinE > 0.00 & UrolithinE < 100 ~ "low",
+    UrolithinE >= 100 & UrolithinE < 300 ~ "med",
+    UrolithinE >= 300 ~ "high"
+  ))
+```
+
+### UrolithinM5
+```{r}
+summary(uro_endvalues$UrolithinM5)
+sort(uro_endvalues$UrolithinM5)
+uro_endvalues <- uro_endvalues %>%
+  mutate(uroM5_bin = case_when(
+    UrolithinM5 == 0.00 ~ "zero",
+    UrolithinM5 > 0.00 & UrolithinM5 < 100 ~ "low",
+    UrolithinM5 >= 100 & UrolithinM5 < 400 ~ "med",
+    UrolithinM5 >= 400 ~ "high"
+  ))
+```
+
+### UrolithinM6
+```{r}
+summary(uro_endvalues$UrolithinM6)
+sort(uro_endvalues$UrolithinM6)
+uro_endvalues <- uro_endvalues %>%
+  mutate(uroM6_bin = case_when(
+    UrolithinM6 == 0.00 ~ "zero",
+    UrolithinM6 > 0.00 & UrolithinM6 < 100 ~ "low",
+    UrolithinM6 >= 100 & UrolithinM6 < 200 ~ "med",
+    UrolithinM6 >= 200 ~ "high"
+  ))
+```
+
+### UrolithinM7
+```{r}
+summary(uro_endvalues$UrolithinM7)
+sort(uro_endvalues$UrolithinM7)
+uro_endvalues <- uro_endvalues %>%
+  mutate(uroM7_bin = case_when(
+    UrolithinM7 == 0.00 ~ "zero",
+    UrolithinM7 > 0.00 & UrolithinM7 < 200 ~ "low",
+    UrolithinM7 >= 200 & UrolithinM7 < 1000 ~ "med",
+    UrolithinM7 >= 1000 ~ "high"
+  ))
+```
+## Merge with Meta
+```{r}
+meta2 <- merge(meta, uro_endvalues, by = "Patient.ID", all.x = TRUE)
+meta2 <- meta2[, c(2, 1, 3:ncol(meta2))]
+columns_to_remove <- c("Delta.UroA", "LogDUroA", "SqrLog")
+
+# Remove the specified columns from the meta data frame
+meta2 <- meta2[, !(colnames(meta2) %in% columns_to_remove)]
+```
+
+## Create Sample Table, R objects
+```{r}
+directory <- "../counts/"
+list.files(directory)
+```
+
+```{r}
+sampleFiles <- list.files(directory, pattern="*.counts$")
+#Get rid of samples that lack data, low # of sequences
+sampleFiles <- sampleFiles[! sampleFiles %in% c('WS13-3_S31.counts','WS43-5_S80.counts','WS45-3_S83.counts')]
+meta2$fileName <- paste0(meta2$fileName, ".counts")
+meta2 <- meta2[meta2$fileName %in% sampleFiles, ]
+write.csv(meta2, file="cleanedmeta.csv")
+```
+
+```{r}
+all(sampleFiles == meta2[,1] )
+meta2 <- meta2[match(sampleFiles, meta2[, 1]), ]
+all(sampleFiles == meta2[,1] )
+```
+```{r}
+sampleTable <- data.frame(
+  sampleName = meta2$sample_id,
+  fileName = sampleFiles,
+  uroA_bin = meta2$uroA_bin,
+  uroB_bin = meta2$uroB_bin,
+  uroC_bin = meta2$uroC_bin,
+  uroD_bin = meta2$uroD_bin,
+  uroE_bin = meta2$uroE_bin,
+  uroM5_bin = meta2$uroM5_bin,
+  uroM6_bin = meta2$uroM6_bin,
+  uroM7_bin = meta2$uroM7_bin,
+  sex = meta2$Sex,
+  colon = meta2$Location,
+  obesity = meta2$Obesity,
+  risk = meta2$PolypRiskScore
+)
+sampleTable
+```
+```{r}
+distalTable <- sampleTable[sampleTable$colon=='Distal',]
+
+proximalTable <- sampleTable[sampleTable$colon=='Proximal',]
+
+saveRDS(distalTable, file = "DistalTable.rds")
+saveRDS(proximalTable, file = "ProximalTable.rds")
+```
