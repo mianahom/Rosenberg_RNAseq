@@ -1,5 +1,5 @@
 ---
-title: "Urolithin A results"
+title: "Urolithin E results"
 author: Mia Nahom
 date: 2025-2-4
 format: 
@@ -29,7 +29,7 @@ library("data.table")
 ## Read in distal and proximal objects and set working directory
 
 ```{r}
-#setwd(dir="UrolithinA/")
+#setwd(dir="../UrolithinE/")
 directory <- "../counts/"
 list.files(directory)
 
@@ -46,12 +46,12 @@ annotation
 distal_ddsHTSeq <- DESeqDataSetFromHTSeqCount(
   sampleTable = DistalTable, 
   directory = directory, 
-  design = ~ uroA_bin
+  design = ~ uroE_bin
 )
 proximal_ddsHTSeq <- DESeqDataSetFromHTSeqCount(
   sampleTable = ProximalTable, 
   directory = directory, 
-  design = ~ uroA_bin
+  design = ~ uroE_bin
 )
 ```
 ## Distal Analysis
@@ -70,9 +70,9 @@ distal_ddsHTSeq <- distal_ddsHTSeq[keep,]
 
 ### Set factors
 ```{r}
-levels <- c("zero","low","low.med","med.high","high")
-distal_ddsHTSeq$uroA_bin <- factor(distal_ddsHTSeq$uroA_bin, levels = levels)
-distal_ddsHTSeq$uroA_bin
+levels <- c("zero","low","med","high")
+distal_ddsHTSeq$uroE_bin <- factor(distal_ddsHTSeq$uroE_bin, levels = levels)
+distal_ddsHTSeq$uroE_bin
 ```
 ### Get results
 ```{r}
@@ -82,27 +82,20 @@ resultsNames(distal_dds)
 
 ### Extract Results
 #### res1: high vs zero
-#### res2: med.high vs zero
-#### res3: low.med vs zero
-#### res4: low vs zero
-#### res5: high vs low
-#### res6: med.high vs low
-#### res7: low.med vs low
-#### res8: high vs low.med
-#### res9: high.med vs low.med
-#### res10: high vs med.high
+#### res2: med vs zero
+#### res3: low vs zero
+#### res4: high vs low
+#### res5: med vs low
+#### res6: high vs med
 
 ```{r}
-res1_dist <-results(distal_dds, name="uroA_bin_high_vs_zero")
-res2_dist <-results(distal_dds, name="uroA_bin_med.high_vs_zero")
-res3_dist <-results(distal_dds, name="uroA_bin_low.med_vs_zero")
-res4_dist <-results(distal_dds, name="uroA_bin_low_vs_zero")
-res5_dist <-results(distal_dds, contrast=list(c("uroA_bin_high_vs_zero"),c("uroA_bin_low_vs_zero")))
-res6_dist <-results(distal_dds, contrast=list(c("uroA_bin_med.high_vs_zero"),c("uroA_bin_low_vs_zero")))
-res7_dist <-results(distal_dds, contrast=list(c("uroA_bin_low.med_vs_zero"),c("uroA_bin_low_vs_zero")))
-res8_dist <-results(distal_dds, contrast=list(c("uroA_bin_high_vs_zero"),c("uroA_bin_low.med_vs_zero")))
-res9_dist <-results(distal_dds, contrast=list(c("uroA_bin_med.high_vs_zero"),c("uroA_bin_low.med_vs_zero")))
-res10_dist <-results(distal_dds, contrast=list(c("uroA_bin_high_vs_zero"),c("uroA_bin_med.high_vs_zero")))
+res1_dist <-results(distal_dds, name="uroE_bin_high_vs_zero")
+res2_dist <-results(distal_dds, name="uroE_bin_med_vs_zero")
+res3_dist <-results(distal_dds, name="uroE_bin_low_vs_zero")
+res4_dist <-results(distal_dds, contrast=list(c("uroE_bin_high_vs_zero"),c("uroE_bin_low_vs_zero")))
+res5_dist <-results(distal_dds, contrast=list(c("uroE_bin_med_vs_zero"),c("uroE_bin_low_vs_zero")))
+res6_dist <-results(distal_dds, contrast=list(c("uroE_bin_high_vs_zero"),c("uroE_bin_med_vs_zero")))
+
 ```
 ### Summary of results
 ```{r}
@@ -112,10 +105,6 @@ summary(res3_dist)
 summary(res4_dist)
 summary(res5_dist)
 summary(res6_dist)
-summary(res7_dist)
-summary(res8_dist)
-summary(res9_dist)
-summary(res10_dist)
 ```
 ```{r}
 res1_dist %>%
@@ -159,35 +148,6 @@ res6_dist %>%
   tibble::rownames_to_column(var = "ensembl_gene_id") %>%
   merge(annotation, by.x = "ensembl_gene_id", by.y = "ensembl_gene_id", all.x = TRUE) %>%
   write.csv(.,file="res6_dist.csv")
-
-
-res7_dist %>%
-  as.data.frame() %>%
-  arrange(padj) %>%
-  tibble::rownames_to_column(var = "ensembl_gene_id") %>%
-  merge(annotation, by.x = "ensembl_gene_id", by.y = "ensembl_gene_id", all.x = TRUE) %>%
-  write.csv(.,file="res7_dist.csv")
-
-res8_dist %>%
-  as.data.frame() %>%
-  arrange(padj) %>%
-  tibble::rownames_to_column(var = "ensembl_gene_id") %>%
-  merge(annotation, by.x = "ensembl_gene_id", by.y = "ensembl_gene_id", all.x = TRUE) %>%
-  write.csv(.,file="res8_dist.csv")
-
-res9_dist %>%
-  as.data.frame() %>%
-  arrange(padj) %>%
-  tibble::rownames_to_column(var = "ensembl_gene_id") %>%
-  merge(annotation, by.x = "ensembl_gene_id", by.y = "ensembl_gene_id", all.x = TRUE) %>%
-  write.csv(.,file="res9_dist.csv")
-
-res10_dist %>%
-  as.data.frame() %>%
-  arrange(padj) %>%
-  tibble::rownames_to_column(var = "ensembl_gene_id") %>%
-  merge(annotation, by.x = "ensembl_gene_id", by.y = "ensembl_gene_id", all.x = TRUE) %>%
-  write.csv(.,file="res10_dist.csv")
 ```
 
 ## Proximal Analysis
@@ -205,38 +165,32 @@ proximal_ddsHTSeq <- proximal_ddsHTSeq[keep,]
 ```
 ### Set factors
 ```{r}
-levels <- c("zero","low","low.med","med.high","high")
-proximal_ddsHTSeq$uroA_bin <- factor(proximal_ddsHTSeq$uroA_bin, levels = levels)
-proximal_ddsHTSeq$uroA_bin
+levels <- c("zero","low","med","high")
+proximal_ddsHTSeq$uroE_bin <- factor(proximal_ddsHTSeq$uroE_bin, levels = levels)
+proximal_ddsHTSeq$uroE_bin
 ```
 ### Get results
 ```{r}
 proximal_dds <- DESeq(proximal_ddsHTSeq)
 resultsNames(proximal_dds)
 ```
+
 ### Extract Results
 #### res1: high vs zero
-#### res2: med.high vs zero
-#### res3: low.med vs zero
-#### res4: low vs zero
-#### res5: high vs low
-#### res6: med.high vs low
-#### res7: low.med vs low
-#### res8: high vs low.med
-#### res9: high.med vs low.med
-#### res10: high vs med.high
+#### res2: med vs zero
+#### res3: low vs zero
+#### res4: high vs low
+#### res5: med vs low
+#### res6: high vs med
 
 ```{r}
-res1_prox <-results(proximal_dds, name="uroA_bin_high_vs_zero")
-res2_prox <-results(proximal_dds, name="uroA_bin_med.high_vs_zero")
-res3_prox <-results(proximal_dds, name="uroA_bin_low.med_vs_zero")
-res4_prox <-results(proximal_dds, name="uroA_bin_low_vs_zero")
-res5_prox <-results(proximal_dds, contrast=list(c("uroA_bin_high_vs_zero"),c("uroA_bin_low_vs_zero")))
-res6_prox <-results(proximal_dds, contrast=list(c("uroA_bin_med.high_vs_zero"),c("uroA_bin_low_vs_zero")))
-res7_prox <-results(proximal_dds, contrast=list(c("uroA_bin_low.med_vs_zero"),c("uroA_bin_low_vs_zero")))
-res8_prox <-results(proximal_dds, contrast=list(c("uroA_bin_high_vs_zero"),c("uroA_bin_low.med_vs_zero")))
-res9_prox <-results(proximal_dds, contrast=list(c("uroA_bin_med.high_vs_zero"),c("uroA_bin_low.med_vs_zero")))
-res10_prox <-results(proximal_dds, contrast=list(c("uroA_bin_high_vs_zero"),c("uroA_bin_med.high_vs_zero")))
+res1_prox <-results(proximal_dds, name="uroE_bin_high_vs_zero")
+res2_prox <-results(proximal_dds, name="uroE_bin_med_vs_zero")
+res3_prox <-results(proximal_dds, name="uroE_bin_low_vs_zero")
+res4_prox <-results(proximal_dds, contrast=list(c("uroE_bin_high_vs_zero"),c("uroE_bin_low_vs_zero")))
+res5_prox <-results(proximal_dds, contrast=list(c("uroE_bin_med_vs_zero"),c("uroE_bin_low_vs_zero")))
+res6_prox <-results(proximal_dds, contrast=list(c("uroE_bin_high_vs_zero"),c("uroE_bin_med_vs_zero")))
+
 ```
 ### Summary of results
 ```{r}
@@ -246,12 +200,7 @@ summary(res3_prox)
 summary(res4_prox)
 summary(res5_prox)
 summary(res6_prox)
-summary(res7_prox)
-summary(res8_prox)
-summary(res9_prox)
-summary(res10_prox)
 ```
-
 ```{r}
 res1_prox %>%
   as.data.frame() %>%
@@ -295,32 +244,5 @@ res6_prox %>%
   merge(annotation, by.x = "ensembl_gene_id", by.y = "ensembl_gene_id", all.x = TRUE) %>%
   write.csv(.,file="res6_prox.csv")
 
-res7_prox %>%
-  as.data.frame() %>%
-  arrange(padj) %>%
-  tibble::rownames_to_column(var = "ensembl_gene_id") %>%
-  merge(annotation, by.x = "ensembl_gene_id", by.y = "ensembl_gene_id", all.x = TRUE) %>%
-  write.csv(.,file="res7_prox.csv")
-
-res8_prox %>%
-  as.data.frame() %>%
-  arrange(padj) %>%
-  tibble::rownames_to_column(var = "ensembl_gene_id") %>%
-  merge(annotation, by.x = "ensembl_gene_id", by.y = "ensembl_gene_id", all.x = TRUE) %>%
-  write.csv(.,file="res8_prox.csv")
-
-res9_prox %>%
-  as.data.frame() %>%
-  arrange(padj) %>%
-  tibble::rownames_to_column(var = "ensembl_gene_id") %>%
-  merge(annotation, by.x = "ensembl_gene_id", by.y = "ensembl_gene_id", all.x = TRUE) %>%
-  write.csv(.,file="res9_prox.csv")
-
-res10_prox %>%
-  as.data.frame() %>%
-  arrange(padj) %>%
-  tibble::rownames_to_column(var = "ensembl_gene_id") %>%
-  merge(annotation, by.x = "ensembl_gene_id", by.y = "ensembl_gene_id", all.x = TRUE) %>%
-  write.csv(.,file="res10_prox.csv")
 ```
 

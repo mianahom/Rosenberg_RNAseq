@@ -38,6 +38,8 @@ DistalTable <- readRDS("../QC_meta/DistalTable.rds")
 DistalTable
 ProximalTable <- readRDS("../QC_meta/ProximalTable.rds")
 ProximalTable
+annotation <- readRDS("../QC_meta/annotation.rds")
+annotation
 ```
 ## Create DESeq2 Object
 ```{r}
@@ -95,6 +97,28 @@ summary(res1_dist)
 summary(res2_dist)
 summary(res3_dist)
 ```
+```{r}
+res1_dist %>%
+  as.data.frame() %>%
+  arrange(padj) %>%
+  tibble::rownames_to_column(var = "ensembl_gene_id") %>%
+  merge(annotation, by.x = "ensembl_gene_id", by.y = "ensembl_gene_id", all.x = TRUE) %>%
+  write.csv(.,file="res1_dist.csv")
+
+res2_dist %>%
+  as.data.frame() %>%
+  arrange(padj) %>%
+  tibble::rownames_to_column(var = "ensembl_gene_id") %>%
+  merge(annotation, by.x = "ensembl_gene_id", by.y = "ensembl_gene_id", all.x = TRUE) %>%
+  write.csv(.,file="res2_dist.csv")
+
+res3_dist %>%
+  as.data.frame() %>%
+  arrange(padj) %>%
+  tibble::rownames_to_column(var = "ensembl_gene_id") %>%
+  merge(annotation, by.x = "ensembl_gene_id", by.y = "ensembl_gene_id", all.x = TRUE) %>%
+  write.csv(.,file="res3_dist.csv")
+```
 
 ## Proximal Analysis
 ### Filter out low expression genes
@@ -137,8 +161,30 @@ res3_prox <-results(proximal_dds, contrast=list(c("uroB_bin_high_vs_zero"),c("ur
 summary(res1_prox)
 summary(res2_prox)
 summary(res3_prox)
-
 ```
+```{r}
+res1_prox %>%
+  as.data.frame() %>%
+  arrange(padj) %>%
+  tibble::rownames_to_column(var = "ensembl_gene_id") %>%
+  merge(annotation, by.x = "ensembl_gene_id", by.y = "ensembl_gene_id", all.x = TRUE) %>%
+  write.csv(.,file="res1_prox.csv")
+
+res2_prox %>%
+  as.data.frame() %>%
+  arrange(padj) %>%
+  tibble::rownames_to_column(var = "ensembl_gene_id") %>%
+  merge(annotation, by.x = "ensembl_gene_id", by.y = "ensembl_gene_id", all.x = TRUE) %>%
+  write.csv(.,file="res2_prox.csv")
+
+res3_prox %>%
+  as.data.frame() %>%
+  arrange(padj) %>%
+  tibble::rownames_to_column(var = "ensembl_gene_id") %>%
+  merge(annotation, by.x = "ensembl_gene_id", by.y = "ensembl_gene_id", all.x = TRUE) %>%
+  write.csv(.,file="res3_prox.csv")
+```
+
 ### Look at some counts
 ```{r}
 res2_prox %>% as.data.frame() %>% arrange(padj) %>% head()

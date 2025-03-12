@@ -13,6 +13,7 @@ format:
 library("DESeq2")
 library("tidyverse")
 library("dplyr")
+library("biomaRt")
 ```
 ## Read in meta data
 ```{r}
@@ -196,6 +197,7 @@ all(sampleFiles == meta2[,1] )
 sampleTable <- data.frame(
   sampleName = meta2$sample_id,
   fileName = sampleFiles,
+  isouroA_bin = meta2$isouroA_bin,
   uroA_bin = meta2$uroA_bin,
   uroB_bin = meta2$uroB_bin,
   uroC_bin = meta2$uroC_bin,
@@ -219,3 +221,22 @@ proximalTable <- sampleTable[sampleTable$colon=='Proximal',]
 saveRDS(distalTable, file = "DistalTable.rds")
 saveRDS(proximalTable, file = "ProximalTable.rds")
 ```
+```{r}
+ensemblhost <- "https://oct2024.archive.ensembl.org"
+
+mart <- useEnsembl(biomart="ENSEMBL_MART_ENSEMBL", mirror = 'asia' )
+
+searchDatasets(mart,pattern="hsapiens_gene_ensembl")
+```
+```{r}
+humandata <- searchDatasets(mart,pattern="hsapiens_gene_ensembl")[,1]
+
+human_mart <- useEnsembl(biomart = "ENSEMBL_MART_ENSEMBL", mirror='asia', dataset = humandata)
+
+```
+```{r}
+annotation <- getBM(attributes=c("ensembl_gene_id","external_gene_name","description"),mart=human_mart)
+head(annotation)
+saveRDS(annotation, file = "annotation.rds")
+```
+
